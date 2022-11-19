@@ -46,7 +46,12 @@ def exceedence(data):
     data['Exceedence ES 95%'] = exceed_3
     data['Exceedence ES 99%'] = exceed_4
 
-    return data
+    VaR_95_violations = len(exceed_1) - exceed_1.count(0)
+    VaR_99_violations = len(exceed_2) - exceed_2.count(0)
+    ES_95_violations = len(exceed_3) - exceed_3.count(0)
+    ES_99_violations = len(exceed_4) - exceed_4.count(0)
+
+    return [data, VaR_95_violations, VaR_99_violations, ES_95_violations, ES_99_violations]
 
 def VaR_ES(data, column, lag):
 
@@ -90,12 +95,15 @@ def VaR_ES(data, column, lag):
     data['VaR 99%'] = quantiles_99
     data['ES 95%'] = es_95
     data['ES 99%'] = es_99
-
-    print(data['Loss'][0] > data['VaR 95%'][0])
     
-    data = exceedence(data)
+    exceed = exceedence(data)
+    data = exceed[0]
+    VaR_95_violations = exceed[1]
+    VaR_99_violations = exceed[2]
+    ES_95_violations = exceed[3]
+    ES_99_violations = exceed[4]
 
-    return data
+    return [data, VaR_95_violations, VaR_99_violations, ES_95_violations, ES_99_violations]
 
 def positive_loss(data, lag, column):
     data_positive_loss = pd.DataFrame()
@@ -106,14 +114,21 @@ def positive_loss(data, lag, column):
     return data_positive_loss
 
 def HS(data, column, lag):
-    data_VaR_ES = VaR_ES(data, column, lag)
+    df = VaR_ES(data, column, lag)
+    data_VaR_ES = df[0]
+    VaR_95_violations = df[1]
+    VaR_99_violations = df[2]
+    ES_95_violations = df[3]
+    ES_99_violations = df[4]
+
     data_positive_loss = positive_loss(data_VaR_ES, lag, column)
 
-    return data_positive_loss
+    return [data_positive_loss, VaR_95_violations, VaR_99_violations, ES_95_violations, ES_99_violations]
 
-data_positive_loss = HS(data, 'Loss', 500)
+data_positive = HS(data, 'Loss', 500)
+data_positive_loss = data_positive[0]
 
-print(data_positive_loss)
+print(data_positive[2])
 
 ax = data_positive_loss[['Date', 'Loss']].plot(
     x='Date', kind='bar', color='orange')
