@@ -6,6 +6,47 @@ import matplotlib.pyplot as plot
 
 from preliminary import (data)
 
+def exceedence(data):
+    L = len(data)
+    Loss = data['Loss']
+
+    exceed_1 = []
+    exceed_2 = []
+    exceed_3 = []
+    exceed_4 = []
+
+    column_1 = data['VaR 95%']
+    column_2 = data['VaR 99%']
+    column_3 = data['ES 95%']
+    column_4 = data['ES 99%']
+
+    for i in range(L):
+        if Loss[i] > column_1[i]:
+            exceed_1.append(data['Loss'][i])
+        else:
+            exceed_1.append(0)
+
+        if Loss[i] > column_2[i]:
+            exceed_2.append(data['Loss'][i])
+        else:
+            exceed_2.append(0)
+
+        if Loss[i] > column_3[i]:
+            exceed_3.append(data['Loss'][i])
+        else:
+            exceed_3.append(0)
+
+        if Loss[i] > column_4[i]:
+            exceed_4.append(data['Loss'][i])
+        else:
+            exceed_4.append(0)
+
+    data['Exceedence VaR 95%'] = exceed_1
+    data['Exceedence VaR 99%'] = exceed_2
+    data['Exceedence ES 95%'] = exceed_3
+    data['Exceedence ES 99%'] = exceed_4
+
+    return data
 
 def VaR_ES(data, column, lag):
 
@@ -50,6 +91,10 @@ def VaR_ES(data, column, lag):
     data['ES 95%'] = es_95
     data['ES 99%'] = es_99
 
+    print(data['Loss'][0] > data['VaR 95%'][0])
+    
+    data = exceedence(data)
+
     return data
 
 def positive_loss(data, lag, column):
@@ -68,8 +113,18 @@ def HS(data, column, lag):
 
 data_positive_loss = HS(data, 'Loss', 500)
 
+print(data_positive_loss)
+
 ax = data_positive_loss[['Date', 'Loss']].plot(
     x='Date', kind='bar', color='orange')
+data_positive_loss[['Date', 'Exceedence VaR 95%']].plot.scatter(
+    x='Date', y='Exceedence VaR 95%', marker='x' ,color='red', ax=ax)
+data_positive_loss[['Date', 'Exceedence VaR 99%']].plot.scatter(
+    x='Date', y='Exceedence VaR 99%', marker='o', color='yellow', ax=ax)
+data_positive_loss[['Date', 'Exceedence ES 95%']].plot.scatter(
+    x='Date', y='Exceedence ES 95%', marker=',', color='blue', ax=ax)
+data_positive_loss[['Date', 'Exceedence ES 99%']].plot.scatter(
+    x='Date', y='Exceedence ES 99%', color='black', ax=ax)
 data_positive_loss[['Date', 'VaR 95%']].plot.line(
     x='Date', linestyle='-', color='red', ax=ax)
 data_positive_loss[['Date', 'VaR 99%']].plot.line(
