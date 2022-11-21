@@ -127,14 +127,14 @@ def GARCH_VaR_ES(data, column, lag):
     var = []
 
     for i in range(C):
-        if i < lag + 1:
+        if i < lag:
             quantiles_95.append(0)
             quantiles_99.append(0)
             es_95.append(0)
             es_99.append(0)
             var.append(0)
         else:
-            model = arch_model(data['Loss'][i - (lag + 1):i - 1], mean='zero', p=1, q=1, dist='normal')
+            model = arch_model(data['Loss'][i - (lag):i], mean='zero', p=1, q=1, dist='normal')
             res = model.fit(update_freq=5, disp=0)
             forecasts = res.forecast(reindex=False)
             standardised_values = res.std_resid
@@ -184,7 +184,7 @@ def positive_loss(data, lag, column):
 
     return data_positive_loss
 
-start_df = GARCH_FHS(0, 0.06, data['Loss'][0]**2, data, 'Loss')
+start_df = GARCH_FHS(0, 0.06, data['Loss'][0], data, 'Loss')
 df = positive_loss(start_df[0], 500, 'Loss')
 print(start_df[0])
 print(start_df[1])
