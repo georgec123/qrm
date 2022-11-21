@@ -82,8 +82,7 @@ def EWMA(mu, alpha, sigma_0, data, column):
     return data
 
 def GARCH_FHS(mu, alpha, sigma_0, data, column):
-    
-    data = EWMA(mu, alpha, sigma_0, data, column)
+
     L = len(data)
     X = data[column]
 
@@ -95,10 +94,10 @@ def GARCH_FHS(mu, alpha, sigma_0, data, column):
     data_GARCH = GARCH_VaR_ES(data, 'Loss', 500)
 
     for i in range(L):
-        estimated_VaR_95.append(mu + (data['EWMA'][i] * data_GARCH['VaR 95%'][i]))
-        estimated_VaR_99.append(mu + (data['EWMA'][i] * data_GARCH['VaR 99%'][i]))
-        estimated_ES_95.append(mu + (data['EWMA'][i] * data_GARCH['ES 95%'][i]))
-        estimated_ES_99.append(mu + (data['EWMA'][i] * data_GARCH['ES 99%'][i]))
+        estimated_VaR_95.append(mu + (data_GARCH['var'][i] * data_GARCH['VaR 95%'][i]))
+        estimated_VaR_99.append(mu + (data_GARCH['var'][i] * data_GARCH['VaR 99%'][i]))
+        estimated_ES_95.append(mu + (data_GARCH['var'][i] * data_GARCH['ES 95%'][i]))
+        estimated_ES_99.append(mu + (data_GARCH['var'][i] * data_GARCH['ES 99%'][i]))
 
     df_estimates = pd.DataFrame()
     
@@ -125,6 +124,7 @@ def GARCH_VaR_ES(data, column, lag):
     quantiles_99 = []
     es_95 = []
     es_99 = []
+    var = []
 
     for i in range(C):
         if i < lag + 1:
@@ -132,14 +132,18 @@ def GARCH_VaR_ES(data, column, lag):
             quantiles_99.append(0)
             es_95.append(0)
             es_99.append(0)
+            var.append(0)
         else:
             model = arch_model(data['Loss'][i - (lag + 1):i - 1], mean='zero', p=1, q=1, dist='normal')
-            res = model.fit(update_freq=5)
+            res = model.fit(update_freq=5, disp=0)
+            forecasts = res.forecast(reindex=False)
             standardised_values = res.std_resid
+            var_val = forecasts.variance.iloc[0,0]
             q_95 = np.quantile(standardised_values.values, 0.95)
             q_99 = np.quantile(standardised_values.values, 0.99)
             quantiles_95.append(q_95)
             quantiles_99.append(q_99)
+            var.append(math.sqrt(var_val))
 
             count_95 = 0
             count_99 = 0
@@ -163,8 +167,8 @@ def GARCH_VaR_ES(data, column, lag):
                 es_99.append((1 / count_99) * es_sum_99)
             else:
                 es_99.append(0)
-
-
+    
+    data['var'] = var
     data['VaR 95%'] = quantiles_95
     data['VaR 99%'] = quantiles_99
     data['ES 95%'] = es_95
@@ -180,7 +184,7 @@ def positive_loss(data, lag, column):
 
     return data_positive_loss
 
-start_df = GARCH_FHS(0, 0.06, data['Loss'][0], data, 'Loss')
+start_df = GARCH_FHS(0, 0.06, data['Loss'][0]**2, data, 'Loss')
 df = positive_loss(start_df[0], 500, 'Loss')
 print(start_df[0])
 print(start_df[1])
