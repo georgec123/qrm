@@ -89,7 +89,7 @@ def get_stats(data, title: str):
         likelihood_ind = lr_ind (alpha, viol_mask)
 
         p_val_uc = p_chi2(likelihood_uc)
-        p_val_joint = p_chi2(likelihood_uc+likelihood_ind)
+        p_val_joint = p_chi2(likelihood_uc+likelihood_ind, dof=2)
 
         accept_str = lambda p_val, alpha : f"{'Accept' if p_val>(1-alpha) else 'Reject'}"
 
@@ -109,7 +109,7 @@ def get_stats(data, title: str):
         # print(f"\n{alpha=}. Violations (exp): {num_viols} ({expected_viols:.2f}).")
         # print(f"VaR LR_uc= {likelihood_uc:.3f}. p-val: {p_val_uc:.5f}. {accept_uc}")                
         # print(f"VaR LR_joint= {likelihood_uc+likelihood_ind:.3f}. p-val: {p_val_joint:.5f}. {accept_joint}")                
-        print(f"ES: Z={z:.2f}. p-val: {p_es:.5f}. {accept_es}")
+        # print(f"ES: Z={z:.2f}. p-val: {p_es:.5f}. {accept_es}")
 
         df.loc[len(df),:] = [alpha, f"{num_viols} ({expected_viols:.1f})", f"{likelihood_uc:.3f}",
             f"{p_val_uc:.5f}", f"{likelihood_uc+likelihood_ind:.3f}", f"{p_val_joint:.5f}",
