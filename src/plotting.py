@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 
 
-def print_viols_and_plot(df: pd.DataFrame, title: str):
+def print_viols_and_plot(df: pd.DataFrame, title: str, q: str):
     """
     Print summary of data including: 99 VaR violations, 95 VaR violations, and VaR/ES plot
     """
@@ -26,10 +26,12 @@ def print_viols_and_plot(df: pd.DataFrame, title: str):
     
     ax.set_title(title)
     ax.legend(loc='upper left')
+    plt.savefig(f'./plots/q2/Q2{q}i.png')
+
     plt.show()
 
     ################ plot var viols ################
-    for var in ['95', '99']:
+    for idx, var in enumerate(['95', '99']):
         ax = data[['max_loss']].plot(c='orange', linewidth=0.5, figsize=(10, 6));
         ax = data[[f'var_{var}']].plot(ax=ax, style=['b--'], linewidth=0.5)
 
@@ -38,7 +40,11 @@ def print_viols_and_plot(df: pd.DataFrame, title: str):
         ax.set_title(f"{title}. VaR {var}% violations")
         ax.set_ylabel(ylabel)
         ax.set_xlabel("Time")
+        plt.savefig(f'./plots/q2/Q2{q}{"i"*(idx+2)}.png')
+
         plt.show()
+
+
 
     num_days = (~data['var_95'].isna()).sum()
     viols_95 = (data['loss']>data['var_95']).sum()
