@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 from scipy import stats
-
+#this is a comment
 
 def log_lik(p: float, obs: pd.Series):
     """
